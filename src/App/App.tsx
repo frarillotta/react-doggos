@@ -1,7 +1,9 @@
 import React, { useEffect, useState, Suspense } from 'react';
 import './App.css';
 import {getRandomDoggo} from "../API/DoggoApi"
-import {motion} from 'framer-motion'
+import { useSpring, animated } from 'react-spring'
+
+// import {motion} from 'framer-motion'
 
 
 function preloadImage(src: string) {
@@ -47,26 +49,25 @@ function getDoggoResource(imageUrl) {
 function App() {
 
   const [activeDoggos, setActiveDoggos] = useState<string[]>([]);
-  const [index, setIndex] = useState<number>(0);
+  const [index, setIndex] = useState<number>(-1);
   const [doggoResource, setDoggoResource] = useState<any>(null);
 
+  
   const handleClick = async () => {
 
     const doggo = await getRandomDoggo();
     setActiveDoggos([...activeDoggos, doggo])
-    setIndex(activeDoggos.length + 1);
+    setIndex(activeDoggos.length);
 
   }
 
   useEffect(()=>{
-    console.log(activeDoggos, resourceCache)
+    
     if (activeDoggos.length === 0) {
 
       setDoggoResource(null);
 
     } else {
-
-      console.log(activeDoggos, index);
       
       setDoggoResource(getDoggoResource(activeDoggos[index]));
       
@@ -75,29 +76,40 @@ function App() {
 
   return (
     <div className="App">
-      <button onClick={handleClick}>I DEMAND A GOOD BOY</button>
-      <button onClick={()=>setIndex(index - 1)}>prev doggo</button>
+      <div className="buttons-container">
+        <button className={"button button--telesto"} onClick={handleClick}><span><span>I WANT GOOD BOY</span></span></button>
+        <button className={"button button--mimas"} onClick={()=> index > 0 && setIndex(index - 1)}><span><span>WAIT SHOW ME THAT AGAIN</span></span></button>
+      </div>
+      <div className={"img-container"}>
       {doggoResource && 
         <Suspense fallback={<p>Loading...</p>}>
-            <DoggoPic resource={doggoResource}></DoggoPic>
-      </Suspense>
+          <DoggoPic resource={doggoResource}/>
+        </Suspense>
       }
+      </div>
     </div>
   );
 }
 
 
 function DoggoPic({resource}) {
+  const props = useSpring({
+    from: { opacity: 0 },
+    to: {opacity: 1},
+    reset: true
+  });
 
   const image = resource.read();
 
   return (
-    <motion.img     
-      animate={{ rotate: 360 }}
-      className={"doggoPics"}
-      src={image}
-      alt={'waiting'}
-    />
+    <animated.div style={props}  
+    >
+      <img   
+        className={"doggoPics"}
+        src={image}
+        alt={'waiting'}
+      />
+    </animated.div>
   )
 
 }
